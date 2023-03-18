@@ -1,17 +1,10 @@
-# visite
+#VISITE 
+An app that will give you virtual walkthrough of college department.
 
-A new Flutter project.
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
+![image](https://user-images.githubusercontent.com/78088095/226118893-0c01dc65-2bea-4524-8b46-4fd52756c2b1.png)
+![image](https://user-images.githubusercontent.com/78088095/226118996-6651b4cf-fbdc-4809-b85f-6b640c598cac.png)
+![image](https://user-images.githubusercontent.com/78088095/226119007-f7335fb0-3972-40c1-a41b-c4d979175d2c.png)
+![image](https://user-images.githubusercontent.com/78088095/226119014-32475a8d-f6a1-47c0-bed2-285da785985a.png)
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# Visite
