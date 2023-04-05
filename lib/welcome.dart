@@ -11,6 +11,7 @@ class Welcome_page extends StatefulWidget {
 }
 
 class _Welcome_pageState extends State<Welcome_page> {
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -105,7 +106,7 @@ class _Welcome_pageState extends State<Welcome_page> {
             ),
             Container(
               //alignment: Alignment.bottomCenter,
-              padding: const EdgeInsets.fromLTRB(4, 100, 4, 0),
+              padding: const EdgeInsets.fromLTRB(4, 50, 4, 0),
               child: const Text('By continuing you agree visite’s terms of \n services and privacy policy.',
               textAlign: TextAlign.center,
               style: TextStyle(

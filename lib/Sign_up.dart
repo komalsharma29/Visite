@@ -1,50 +1,97 @@
 import 'package:flutter/material.dart';
+import 'package:visite/homepage.dart';
+import 'package:visite/sign_upwidget.dart';
+import 'package:visite/utils.dart';
 import 'package:visite/welcome.dart';
 import 'package:flutter/gestures.dart';
 import 'package:visite/Background.dart';
 import 'package:visite/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:email_validator/email_validator.dart';
 
 class Sign_up extends StatefulWidget {
+  
   @override
   State<Sign_up> createState() => _Sign_upState();
 }
 
 class _Sign_upState extends State<Sign_up> {
   final _auth=FirebaseAuth.instance;
+  bool _validate=false;
 
   //string to display error message
-  String? errormessage;
+  
 
   // our form key
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = new GlobalKey<FormState>();
+   final auth = FirebaseAuth.instance;
 
-  //editing controller
-  TextEditingController _emailcontroller=TextEditingController();
-
-  TextEditingController _passcontroller=TextEditingController();
-
-  TextEditingController _confirmcontroller=TextEditingController();
-
+  RegExp pass_valid = RegExp(r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)");
+  bool validatePassword(String pass)
+  {
+    String _pass=pass.trim();
+    if(pass_valid.hasMatch(_pass))
+    {
+      return true;
+    }else{
+      return false;
+    }
+  }
   @override
 
   Widget build(BuildContext context) {
+    final TextEditingController _emailcontroller=TextEditingController();
+
+  final TextEditingController _passcontroller=TextEditingController();
+     
+     void register() async {
+      FirebaseAuth auth = FirebaseAuth.instance;
+      FirebaseFirestore db = FirebaseFirestore.instance;
+
+      
+      final String email = _emailcontroller.text;
+      final String password = _passcontroller.text;
+      
+
+      try {
+        final UserCredential user = await auth.createUserWithEmailAndPassword(
+            email: email, password: password);
+
+        await db.collection('user').doc(user.user!.uid).set({
+          "email": email,
+         
+        });
+
+        print('User is now registered');
+      } catch (e) {
+        print('Error');
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Text("$e"),
+              );
+            });
+      }
+    }
+
+
+
     return Stack(
       children: [
         background(),
         Scaffold(
           backgroundColor: Colors.transparent,
-          body: SingleChildScrollView(
+          body: Form(
+            key:_formKey,
             child: SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 
                 children: <Widget> [
-                  const SizedBox(
-                    height: 10,
-                  ),
-
+                 
 
                   InkWell(                    
                     onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context)=>const Welcome_page()));},
@@ -56,16 +103,11 @@ class _Sign_upState extends State<Sign_up> {
                       size: 30,
                       ),
                     )
-                  ),
-
-
-                  const SizedBox(
-                    height: 30,
-                  ),
-
+                  ),           
 
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: EdgeInsets.fromLTRB(10,0,10,0),
+                    
                     alignment: Alignment.center,
                     child: const Text('Sign Up',
                     textAlign: TextAlign.center,
@@ -75,87 +117,70 @@ class _Sign_upState extends State<Sign_up> {
                     fontWeight: FontWeight.bold)
                     ),
                     ),
-
-                  const SizedBox(
-                    height: 60,
-                  ),
                   
-
-
-
                   Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
+                  
                   child: Column(
-                    children: <Widget>[
-                      inputFile(label:"Email",obscureText: false, controller: _emailcontroller,
-                       validator: (value) {
-                       if (value!.isEmpty) {
-                       return ("Please Enter Your Email");
-                       }
-                        // reg expression for email validation
-                      if (!RegExp("^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
-                      .hasMatch(value)) {
-                      return ("Please Enter a valid email");
-                       }
-                      return null;
-                      },),
+                    children: <Widget>
+                    [
+                 
+                  TextFormField(
+                    controller: _emailcontroller,
+                    cursorColor: Colors.white,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (value)=>
+                    value != null && !EmailValidator.validate(value)
+                    ? 'enter valid email'
+                    : null,
+                  ),
 
+                  SizedBox(
+                    height: 10,
+                  ),
+                 
 
-                      inputFile(label:"Password",obscureText: true,controller:_passcontroller,
-                      validator: (value) {
-                      RegExp regex = new RegExp(r'^.{6,}$');
-                      if (value!.isEmpty) {
-                      return ("Password is required for login");
-                      }
-                      if (!regex.hasMatch(value)) {
-                      return ("Enter Valid Password(Min. 6 Character)");
-                       }
-                       },),
-                      inputFile(label:"Confirm Password",obscureText: true,controller:_confirmcontroller,
-                      validator: (value) {
-                      if (_confirmcontroller.text != _passcontroller.text) {
-                      return "Password don't match";
-                       }
-                      return null;
-                      },)
-                    ],
+                  TextFormField(
+                    
+                    controller: _passcontroller,
+                    cursorColor: Colors.white,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: 'Password'),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    obscureText: true,
+                    
+                    validator: (value){
+                    RegExp pass_valid = RegExp(r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)");
+                    value != null && value.length<6 && !value.contains(pass_valid)
+                    ? 'Enter valid Password with length atleast 6'
+                    : null;
+                    }
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+
+                  Padding(
+                          padding: const EdgeInsets.only(top: 30),
+                          child: ElevatedButton(
+                            onPressed: register,
+                            style: ElevatedButton.styleFrom(
+                                primary: Colors.teal[300],
+                                onPrimary: Colors.deepOrangeAccent[50],
+                                onSurface: Colors.deepPurple,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 50, vertical: 20),
+                                textStyle: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'SignUp',
+                            ),
+                          ),)
+                ],             
                   ),
                 ),
-
-                
-
-                Container(
-                  padding: const EdgeInsets.fromLTRB(120, 0, 120, 0),
-                  child: MaterialButton(
-                    child: const Text('Sign Up',
-                    style: TextStyle(color: Colors.white),),
-                    
-                    
-                        minWidth: double.infinity,
-                        height: 45,
-                        
-                        onPressed: () {
-                          FirebaseAuth.instance.createUserWithEmailAndPassword(
-                            email: _emailcontroller.text , password: _passcontroller.text, ).then((value) {Navigator.push(context, MaterialPageRoute(builder: (context)=>const Welcome_page()));
-                            
-                            }).onError((error, stackTrace) {print("error ${error.toString()}");
-                            });
-                        },
-                        color: Colors.black.withOpacity(0.3),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                        
-                          borderRadius: BorderRadius.circular(20),
-
-
-                        ),
-
-                ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -197,51 +222,12 @@ class _Sign_upState extends State<Sign_up> {
       
     );
         
-      
+   
     
-  }
+
+
+    //navigatorKey.currentState!.popUntil;{(route)=>route.isFirst(); }
+
+  }  
+  
 }
-
-// we will be creating a widget for text field
-Widget inputFile({label ,obscureText:false,required TextEditingController controller,validator})
-{
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: <Widget>[
-      Text(
-        label,
-     
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w400,
-          color:Colors.white
-        ),
-
-      ),
-      const SizedBox(
-        height: 10,
-      ),
-      TextField(
-       obscureText: obscureText,
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.black.withOpacity(0.3),
-                
-                contentPadding: const EdgeInsets.all(15),
-                border: OutlineInputBorder(
-                  
-                  //borderSide: BorderSide(color: Color(0xFF1C1B33),
-                  //width: 20,),
-                    borderRadius: BorderRadius.circular(20)
-                    )),
-        
-      ),
-      const SizedBox(height: 30,)
-    ],
-  );
-}
-
-
-
-
-

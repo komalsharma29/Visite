@@ -1,26 +1,88 @@
+
 import 'package:flutter/material.dart';
 import 'package:visite/Sign_up.dart';
+import 'package:visite/forgot_password.dart';
+import 'package:visite/homepage.dart';
+import 'package:visite/sign_upwidget.dart';
 import 'package:visite/welcome.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:visite/Background.dart';
+import 'package:visite/main.dart';
 
 class Login extends StatelessWidget {
+  const Login({super.key});
+
   @override
+  void _navigateToNextScreen(BuildContext context) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => home()));
+  
+  //State<Login> createState() => _LoginState();
+}
+
   Widget build(BuildContext context) {
+    final TextEditingController _emailcontroller=TextEditingController();
+
+  final TextEditingController _passcontroller=TextEditingController();
+     void login() async {
+      Map<dynamic, dynamic> UserData = {};
+      FirebaseAuth auth = FirebaseAuth.instance;
+      FirebaseFirestore db = FirebaseFirestore.instance;
+
+      final String email = _emailcontroller.text;
+      final String password = _passcontroller.text;
+      print("email: " + email);
+      print("password: " + password);
+      try {
+        final UserCredential user = await auth.signInWithEmailAndPassword(
+            email: email, password: password);
+            if(user!=null)
+            {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => home()));
+            }
+
+        final DocumentSnapshot snapshot =
+            await db.collection('user').doc(user.user!.uid).get();
+
+        final data = snapshot.data();
+        //   setState(() {
+        //   UserData = data;
+        //   UserData['provider'] = 'Email';
+        // });
+        Navigator.of(context).pushNamed("/home");
+
+        print(
+            '=========================User is Login...=============================');
+
+        
+        print("User is Logged");
+      } catch (e) {
+        print("error");
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Text("$e"),
+              );
+            });
+
+        print(e);
+      }
+    }
     return Stack(
+    
       children: [
         background(),
         Scaffold(
           backgroundColor: Colors.transparent,
-          body: SingleChildScrollView(
+          body: Form(
+            //key:_formKey,
             child: SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 
                 children: <Widget> [
-                  const SizedBox(
-                    height: 10,
-                  ),
                   InkWell(                    
                     onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context)=>const Welcome_page()));},
                     child: Container(
@@ -30,15 +92,12 @@ class Login extends StatelessWidget {
                       color: Colors.white,
                       size: 30,
                       ),
-                    
-
                     )
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
+                  ),              
+
                   Container(
                     padding: EdgeInsets.all(10),
+                    
                     alignment: Alignment.center,
                     child: const Text('Login',
                     textAlign: TextAlign.center,
@@ -49,47 +108,63 @@ class Login extends StatelessWidget {
                     ),
                     ),
 
-                  const SizedBox(
-                    height: 60,
-                  ),
-                  
+
                   Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
+                  
                   child: Column(
-                    children: <Widget>[
-                      inputFile(label: "Email"),
-                      inputFile(label: "Password", obscureText: true)
-                    ],
+                    children: <Widget>
+                    [
+                  SizedBox(
+                    height: 20,
+                  ),
+
+                  TextField(
+                    controller: _emailcontroller,
+                    cursorColor: Colors.white,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: 'Email'),
+                    
+                  ),
+                 
+
+
+                  SizedBox(
+                    height: 20,
+                  ),
+
+                  TextFormField(
+                    controller: _passcontroller,
+                    
+                    cursorColor: Colors.white,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(labelText: 'Password'),
+                    
+                  ),
+
+                  ElevatedButton.icon(style: ElevatedButton.styleFrom(
+                    minimumSize: Size.fromHeight(50),
+                  ),
+                  icon: Icon(Icons.arrow_forward,size:32),
+                  label: Text('Login',
+                  style: TextStyle(fontSize: 24),),
+                  onPressed: login,
+                  ),
+                ],             
                   ),
                 ),
-
-                
-
-                Container(
-                  padding: EdgeInsets.fromLTRB(120, 0, 120, 0),
-                  child: MaterialButton(
-                    child: Text('Login',
-                    style: TextStyle(color: Colors.white),),
+                GestureDetector(
+                    onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context)=>Forgot(),));} ,
+                    child: Text('Forgot Password',
+                    style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                     
-                    
-                        minWidth: double.infinity,
-                        height: 45,
-                        
-                        onPressed: () {},
-                        color: Colors.black.withOpacity(0.3),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                        
-                          borderRadius: BorderRadius.circular(20),
+                  )),
+                  ),
 
-
-                        ),
-
-                ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
+            
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -101,7 +176,7 @@ class Login extends StatelessWidget {
                     
                   )),
                   GestureDetector(
-                    onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context)=>Sign_up()));} ,
+                    onTap: () {Navigator.push(context, MaterialPageRoute(builder: (context)=>Sign_up(),));} ,
                     child: Text('Sign Up',
                     style: TextStyle(
                     color: Colors.white,
@@ -112,6 +187,7 @@ class Login extends StatelessWidget {
                   )
                   ],
                 )
+                
                 
                 
                         ],
@@ -130,76 +206,222 @@ class Login extends StatelessWidget {
       
     );
         
-      
+   
     
+
   }
-}
 
-// we will be creating a widget for text field
-Widget inputFile({label, obscureText = false})
-{
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: <Widget>[
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w400,
-          color:Colors.white
-        ),
+    
+    
 
-      ),
-      const SizedBox(
-        height: 10,
-      ),
-      TextField(
-        obscureText: obscureText,
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.black.withOpacity(0.3),
-                
-                contentPadding: const EdgeInsets.all(15),
-                border: OutlineInputBorder(
-                  
-                  //borderSide: BorderSide(color: Color(0xFF1C1B33),
-                  //width: 20,),
-                    borderRadius: BorderRadius.circular(20)
-                    )),
-        
-      ),
-      const SizedBox(height: 30,)
-    ],
-  );
-}
+  }  
 
 
+/*import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:visite/homepage.dart';
 
 
-
-/*import 'package:flutter/material.dart';
-class Login extends StatefulWidget {
-  const Login({super.key});
-
+class Login extends StatelessWidget {
   @override
-  State<Login> createState() => _LoginState();
-}
+  void _navigateToNextScreen(BuildContext context) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => home()));
+  }
 
-class _LoginState extends State<Login> {
-  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Container(
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
+    void login() async {
+      Map<dynamic, dynamic> UserData = {};
+      FirebaseAuth auth = FirebaseAuth.instance;
+      FirebaseFirestore db = FirebaseFirestore.instance;
+
+      final String email = emailController.text;
+      final String password = passwordController.text;
+      print("email: " + email);
+      print("password: " + password);
+      try {
+        final UserCredential user = await auth.signInWithEmailAndPassword(
+            email: email, password: password);
+            if(user!=null)
+            {
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => home()));
+            }
+
+        final DocumentSnapshot snapshot =
+            await db.collection('user').doc(user.user!.uid).get();
+
+        final data = snapshot.data();
+        //   setState(() {
+        //   UserData = data;
+        //   UserData['provider'] = 'Email';
+        // });
+        Navigator.of(context).pushNamed("/home");
+
+        print(
+            '=========================User is Login...=============================');
+
+        
+        print("User is Logged");
+      } catch (e) {
+        print("error");
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Text("$e"),
+              );
+            });
+
+        print(e);
+      }
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login Details'),
+      ),
+      body: Center(
+        child: Container(
           decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/stars.png'),
-            fit: BoxFit.cover)
+              // border: Border.all(color: Colors.black, width: 2),
+              gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Colors.lightBlue.shade400,
+              Colors.pink.shade600,
+            ],
+          )),
+          child: Padding(
+            padding: const EdgeInsets.only(
+              top: 20,
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 80, right: 80, top: 5),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            hintText: "Enter Email Id",
+                            prefixIcon: Padding(
+                              padding: EdgeInsets.all(00),
+                              child: Icon(Icons.email),
+                            ),
+                          ),
+                        ),
+                        TextFormField(
+                          controller: passwordController,
+                          decoration: InputDecoration(
+                            hintText: "Enter Password",
+                            prefixIcon: Padding(
+                              padding: EdgeInsets.all(00),
+                              child: Icon(Icons.lock),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 30),
+                          child: ElevatedButton(
+                            onPressed: login,
+                            style: ElevatedButton.styleFrom(
+                                primary: Colors.teal[300],
+                                onPrimary: Colors.deepOrangeAccent[50],
+                                onSurface: Colors.deepPurple,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 40, vertical: 10),
+                                textStyle: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'Login',
+                            ),
+                          ),
+                        ),
+                        Container(
+                            child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 5,
+                          ),
+                          child: Text("----------or----------",
+                              style:
+                                  TextStyle(fontSize: 20, color: Colors.black)),
+                        )),
+                        Container(
+                            child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 5,
+                          ),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Forgot your password?',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline),
+                                  // recognizer: TapGestureRecognizer()
+                                  //   ..onTap = Register() as GestureTapCallback?,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )),
+                        Container(
+                            child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 10,
+                          ),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                    text: 'New to RiaChat? ',
+                                    style: TextStyle(
+                                        fontSize: 15, color: Colors.black)),
+                                TextSpan(
+                                    text: 'SignUp',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => home(),
+                                          ),
+                                        );
+                                      })
+                              ],
+                            ),
+                          ),
+                        )),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ), 
           ),
         ),
-        
-
       ),
     );
   }
